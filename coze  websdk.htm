@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <title>自动点击示例</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    /* 可选：隐藏页面上的其他触发按钮（如有） */
+    #openChatButton {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- 可选的备用按钮（这里隐藏） -->
+  <button id="openChatButton">Open Chat</button>
+  
+  <!-- 引入 Coze Chatbot SDK -->
+  <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.1.0-beta.3/libs/cn/index.js"></script>
+  
+  <script>
+    window.onload = function() {
+      // 创建 Coze WebChatClient 实例
+      var chatClient = new CozeWebSDK.WebChatClient({
+        config: {
+          bot_id: '你的coze bot id'  // 请替换为有效的 Bot ID
+        },
+        auth: {
+          type: 'token',
+ token:'你的 token',    // 请替换为有效的 Token
+          onRefreshToken: async () => ''
+        },
+        userInfo: {
+          id: 'user',
+          url: 'https://lf-coze-web-cdn.coze.cn/obj/coze-web-cn/obric/coze/favicon.1970.png',
+          nickname: 'UserA'
+        },
+        ui: {
+          base: {
+            icon: 'https://lf-coze-web-cdn.coze.cn/obj/coze-web-cn/obric/coze/favicon.1970.png',
+            layout: 'pc',  // 如在移动端测试，可尝试修改为 'mobile'
+            lang: 'en',
+            zIndex: 1000
+          },
+          chatBot: {
+            title: 'Coze Bot',
+            uploadable: true,
+            width: 390,
+            isCollapsed: true  // 初始状态设为收起
+          },
+          asstBtn: {
+            isNeed: true    // 显示默认悬浮图标
+          },
+          footer: {
+            isShow: true,
+            expressionText: 'Powered by &',
+            linkvars: {
+              name: { text: 'A', link: 'https://www.test1.com' },
+              name1: { text: 'B', link: 'https://www.test2.com' }
+            }
+          }
+        }
+      });
+      
+      // 当 SDK 准备好后，自动模拟点击聊天图标
+      chatClient.onReady(function() {
+        console.log('chatClient 已就绪');
+        // 尝试查找 Coze 的悬浮图标（默认 class 为 .coze-assistant-btn）
+        var cozeIcon = document.querySelector('.coze-assistant-btn');
+        if (cozeIcon) {
+          // 延时 1 秒后自动点击该图标
+          setTimeout(function() {
+            console.log('自动点击 Coze 聊天图标');
+            cozeIcon.click();
+          }, 1000);
+        } else {
+          console.error('未找到 Coze 聊天图标元素');
+        }
+      });
+    };
+  </script>
+</body>
+</html>
