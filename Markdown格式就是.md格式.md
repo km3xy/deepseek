@@ -107,6 +107,100 @@ styles.xml：存储样式设置，如主题、字体等。
 
 
 
+要在 .xmind 文件中包含图片、音频或视频等资源，你需要在XMind的XML结构中添加相应的资源引用，并将资源文件包含在 .xmind 文件的压缩包内。以下是如何操作的步骤：
+
+步骤：
+
+1. 准备资源文件：
+
+图片：可以是JPEG、PNG等格式的图片文件。
+
+音频/视频：可以是MP3、WAV格式的音频文件，或者MP4、MOV等格式的视频文件。
+
+
+
+2. 创建文件夹结构： 在创建 .xmind 文件时，需要使用类似于下面的文件夹结构：
+
+your_xmind_file.xmind
+├── content.xml
+├── metadata.xml
+├── styles.xml
+└── resources/
+    ├── image1.png
+    ├── audio1.mp3
+    └── video1.mp4
+
+content.xml 是思维导图的核心文件，包含了节点信息。
+
+metadata.xml 和 styles.xml 可以为空，或者包含一些基本的元数据和样式。
+
+resources/ 文件夹存放所有的图片、音频或视频等资源文件。
+
+
+
+3. 在 content.xml 中引用资源： XMind支持在思维导图中嵌入图片、音频或视频文件，通常使用<image>、<audio>和<video>标签来引用资源。
+
+例如，假设你想在思维导图的某个节点上显示图片、嵌入音频和视频，你可以将以下内容添加到 content.xml 文件中的某个节点下：
+
+<?xml version="1.0" encoding="UTF-8"?>
+<workbook xmlns="urn:xmind:xmap:xmlns:content:2.0">
+  <sheet name="Sheet 1">
+    <topic id="root">
+      <title>思维导图示例</title>
+      <children>
+        <topics type="attached">
+          <topic id="node1">
+            <title>节点 1</title>
+            <image path="resources/image1.png" />
+            <audio path="resources/audio1.mp3" />
+            <video path="resources/video1.mp4" />
+          </topic>
+          <topic id="node2">
+            <title>节点 2</title>
+          </topic>
+        </topics>
+      </children>
+    </topic>
+  </sheet>
+</workbook>
+
+图片：<image path="resources/image1.png" /> 会将名为 image1.png 的图片嵌入到节点1。
+
+音频：<audio path="resources/audio1.mp3" /> 会将名为 audio1.mp3 的音频嵌入到该节点。
+
+视频：<video path="resources/video1.mp4" /> 会将名为 video1.mp4 的视频嵌入到该节点。
+
+
+
+4. 压缩文件： 将 content.xml、metadata.xml、styles.xml 和 resources/ 文件夹一起压缩为 .zip 文件，然后将 .zip 文件的扩展名更改为 .xmind。
+
+
+5. 打开XMind文件：
+
+将生成的 .xmind 文件导入到XMind软件中。
+
+在XMind中查看时，你应该能看到图片，并能够点击链接来播放音频或视频（如果支持的话）。
+
+
+
+
+注意：
+
+XMind中的资源路径是相对路径，因此要确保资源文件和 content.xml 文件在同一目录结构下。
+
+由于 .xmind 文件是一个ZIP压缩包，因此你可以使用任何压缩工具来操作和查看文件内容。
+
+
+生成样例：
+
+假如你已经创建了这些资源文件（图片、音频、视频），可以按照上述步骤操作，最后得到一个 .xmind 文件，其中包括图片、音频和视频资源。
+
+如果你有任何问题或操作中的困惑，随时告诉我，我会进一步帮助你！
+
+
+
+
+
 
 
 
