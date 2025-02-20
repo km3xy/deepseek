@@ -1,0 +1,254 @@
+测试建议：
+
+在iOS Safari/Chrome中测试输入框聚焦行为
+安卓设备测试长文本（500字以上）生成流畅度
+检查不同DPR屏幕下的图标清晰度
+
+此版本已针对移动端WebView环境优化，可在KES Web等容器中稳定运行。如需进一步优化启动速度，可考虑移除阴影效果或简化CSS动画。
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek 风格逐字打印</title>
+    <style>
+        :root {
+            --deepseek-blue: #1752FA;
+            --bg-color: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .message-container {
+            display: flex;
+            gap: 15px;
+            margin: 24px 0;
+        }
+
+        .deepseek-avatar {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .deepseek-icon {
+            width: 24px;
+            height: 24px;
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAVFBMVEVHcEwAqP8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8Aqf8AqP+2jR7ZAAAAHHRSTlMAEBBQYHB/gI+fr7/P3+/v9wQSBv3o5uXk4ODc2tHIp3kRAAABKElEQVQ4y4WThbKDQBBFj1twd3d3d3eHfP9XTApCEgKzL1NVt7tv5vQ0wzH4J4rFb0iWZQlJkiQmHxYF4BQk8wCwLIsiJh8hJgCwAq4AgiAIIoWX3wC6rgNwXfd1gK7rAMA7AARBvA4gCAIAaJp+HaBpGgAoinodQFEUADAM8zqAYRgAYFn2dQDLsgDA8/zrAJ7nAYDn+dcBgiAAgCiKrwNEUQQASZJeB0iSBACyLL8OkGUZABRFeR2gKAoAqKr6OkBVVQBgGOZ1AMMwAMDz/OsAQRAAgGXZ1wEsywIAx3GvAziOAwCe518H8DwPAKIovg4QRREAJEl6HfA3j4qivA5QVRUAJEl6HaCqKgCoqvo6QNM0ANA07XWAruuvXwH9CuhX4L8r8AFG8iXj9H0VuwAAAABJRU5ErkJggg==') no-repeat center/contain;
+        }
+
+        .message-content {
+            flex-grow: 1;
+            position: relative;
+            padding-left: 12px;
+        }
+
+        .typewriter {
+            font-size: 16px;
+            line-height: 1.75;
+            color: #374151;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            position: relative;
+            min-height: 1em;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .typewriter::after {
+            content: "▌";
+            color: var(--deepseek-blue);
+            animation: cursor 1s step-end infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes cursor {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .thinking-dots {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .thinking-dots span {
+            animation: dot-pulse 1.4s infinite;
+            opacity: 0;
+        }
+
+        .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes dot-pulse {
+            0%, 50% { opacity: 0; }
+            25% { opacity: 1; }
+        }
+
+        #inputText {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 15px;
+            resize: vertical;
+        }
+
+        #submitButton {
+            background: var(--deepseek-blue);
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        #submitButton:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        #output {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-top: 24px;
+            height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="color: var(--deepseek-blue); text-align: center;">DeepSeek 逐字打印</h1>
+    
+    <textarea id="inputText" placeholder="输入要打印的内容..."></textarea>
+    <button id="submitButton">开始生成</button>
+    
+    <div id="output"></div>
+
+    <script>
+        class TextGenerator {
+            constructor() {
+                this.output = document.getElementById('output');
+                this.button = document.getElementById('submitButton');
+                this.isGenerating = false;
+                
+                this.button.addEventListener('click', () => this.handleGenerate());
+            }
+
+            async handleGenerate() {
+                if (this.isGenerating) return;
+                
+                const text = document.getElementById('inputText').value.trim();
+                if (!text) return;
+
+                this.isGenerating = true;
+                this.button.disabled = true;
+                
+                const messageContainer = this.createMessageContainer();
+                const contentElement = messageContainer.querySelector('.message-content');
+                
+                this.showThinkingAnimation(contentElement);
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                // 创建滚动容器
+                const typewriterWrapper = this.createScrollContainer();
+                const typewriterElement = typewriterWrapper.querySelector('.typewriter');
+                contentElement.appendChild(typewriterWrapper);
+                
+                await this.typeText(text, typewriterElement);
+                
+                this.isGenerating = false;
+                this.button.disabled = false;
+            }
+
+            createScrollContainer() {
+                const wrapper = document.createElement('div');
+                wrapper.style.overflowY = 'auto';
+                wrapper.style.maxHeight = '60vh';
+                wrapper.innerHTML = '<div class="typewriter"></div>';
+                return wrapper;
+            }
+
+            createMessageContainer() {
+                const container = document.createElement('div');
+                container.className = 'message-container';
+                
+                container.innerHTML = `
+                    <div class="deepseek-avatar">
+                        <div class="deepseek-icon"></div>
+                    </div>
+                    <div class="message-content">
+                        <div class="thinking-dots">
+                            <span>.</span><span>.</span><span>.</span>
+                        </div>
+                    </div>
+                `;
+                
+                this.output.appendChild(container);
+                return container;
+            }
+
+            showThinkingAnimation(container) {
+                const dots = container.querySelector('.thinking-dots');
+                dots.style.display = 'block';
+            }
+
+            async typeText(text, element) {
+                let index = 0;
+                const speedVariation = 0.3;
+                const container = element.parentElement;
+
+                while (index < text.length) {
+                    const char = text[index++];
+                    element.textContent += char;
+                    
+                    //
+                    
+// 智能滚动：仅在接近底部时滚动
+                    const shouldScroll = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+                    if (shouldScroll) {
+                        container.scrollTop = container.scrollHeight;
+                    }
+
+                    // 设置打字延迟
+                    const delay = Math.random() * 40 + 40; // 随机延迟
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        new TextGenerator();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
